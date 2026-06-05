@@ -57,7 +57,7 @@ const uploadVideo = async () => {
   formData.append('video_type', 'solo')
 
   try {
-    await $fetch('http://127.0.0.1:8000/api/upload/', {
+    await $fetch('https://downloadlovedy.pythonanywhere.com/api/upload/', {
       method: 'POST',
       body: formData
     })

@@ -41,6 +41,7 @@
               </iframe>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -81,7 +82,7 @@ import { ref, computed } from 'vue'
 const route = useRoute()
 const router = useRouter()
 
-const { data: apiVideos } = await useFetch('http://127.0.0.1:8000/api/videos/')
+const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
 
 const vidsParam = computed(() => route.query.vids ? route.query.vids.split(',') : [])
 const layoutType = computed(() => route.query.layout || 'grid-4')

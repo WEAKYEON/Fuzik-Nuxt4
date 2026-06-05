@@ -72,7 +72,7 @@ const layout = computed(() => route.query.layout || 'grid-4')
 const layoutNames = { 'grid-4': '4-Piece Band (2x2)', 'grid-3': 'Trio (Top 2, Bottom 1)', 'grid-2': 'Duo (Side by Side)','grid-3-alt': 'Lead & Backups' }
 const layoutName = computed(() => layoutNames[layout.value] || layout.value)
 
-const { data: apiVideos } = await useFetch('http://127.0.0.1:8000/api/videos/')
+const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
 
 const searchQuery = ref('')
 const draggedVideo = ref(null)

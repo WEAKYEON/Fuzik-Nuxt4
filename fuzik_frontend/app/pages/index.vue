@@ -60,7 +60,7 @@ const searchQuery = ref('')
 const router = useRouter() 
 
 // ดึงข้อมูลจาก Django
-const { data: apiVideos } = await useFetch('http://127.0.0.1:8000/api/videos/')
+const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
 
 const videos = computed(() => {
   if (!apiVideos.value) return []
@@ -97,7 +97,7 @@ const uploadToYT = async (id) => {
     alert('ระบบกำลังทำงาน... โปรดรอสักครู่ ห้ามปิดหน้าต่างนี้นะครับ (อาจใช้เวลาหลายวินาที)');
     
     // ยิงไปหา API ตัวใหม่ที่เราเพิ่งสร้าง
-    const response = await $fetch(`http://127.0.0.1:8000/api/videos/${id}/push-youtube/`, {
+    const response = await $fetch(`https://downloadlovedy.pythonanywhere.com/api/videos/${id}/push-youtube/`, {
       method: 'POST'
     });
     
