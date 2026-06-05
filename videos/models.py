@@ -1,0 +1,20 @@
+from django.db import models
+
+class Video(models.Model): 
+    # เพิ่มตัวเลือก (Choices) สำหรับประเภทวิดีโอ
+    VIDEO_TYPES = (
+        ('solo', 'Solo'),
+        ('collab', 'Collaboration'),
+    )
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    video_file = models.FileField(upload_to='temp_videos/')
+    youtube_id = models.CharField(max_length=50, blank=True, null=True)
+    
+    # เก็บประเภทวิดีโอ (ค่าเริ่มต้นให้เป็น solo)
+    video_type = models.CharField(max_length=10, choices=VIDEO_TYPES, default='solo')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
