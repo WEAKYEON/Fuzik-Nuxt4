@@ -19,15 +19,15 @@ class VideoUploadView(APIView):
             video_instance = file_serializer.save()
             
             try:
-                # file_path = video_instance.video_file.path
-                # video_title = video_instance.title
+                file_path = video_instance.video_file.path
+                video_title = video_instance.title
 
-                # # ส่งไฟล์ขึ้น YouTube
-                # youtube_id = upload_video_to_youtube(file_path, video_title, video_instance.description)
+                # ส่งไฟล์ขึ้น YouTube
+                youtube_id = upload_video_to_youtube(file_path, video_title, video_instance.description)
                 
-                # # เอารหัสมาเซฟทับ
-                # video_instance.youtube_id = youtube_id
-                # video_instance.save()
+                # เอารหัสมาเซฟทับ
+                video_instance.youtube_id = youtube_id
+                video_instance.save()
 
                 response_data = VideoSerializer(video_instance).data
                 return Response(response_data, status=status.HTTP_201_CREATED)
