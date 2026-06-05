@@ -3,7 +3,7 @@
 A prototype web application for seamlessly uploading and managing video content, integrated directly with the YouTube Data API.
 
 ## Live Demo
-- **Frontend (Nuxt):** [[https://fuzik-nuxt4.vercel.app](https://fuzik-nuxt4.vercel.app/)]
+- **Frontend (Nuxt):** [https://fuzik-nuxt4.vercel.app](https://fuzik-nuxt4.vercel.app/)
 - **Backend API (Django):** [https://downloadlovedy.pythonanywhere.com/api/videos/](https://downloadlovedy.pythonanywhere.com/api/videos/)
 
 ## Tech Stack
