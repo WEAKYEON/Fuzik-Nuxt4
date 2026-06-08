@@ -26,7 +26,11 @@ SECRET_KEY = 'django-insecure--612&63_e)i-hjo#aru^nsu0sx&4()c$gw1ckb^cb1_$)j6r-+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'downloadlovedy.pythonanywhere.com',  # เพิ่มโดเมนของคุณลงไป
+    '127.0.0.1',                          # อนุญาต Localhost ด้วย (เผื่อรันในเครื่อง)
+    'localhost',
+]
 
 
 # Application definition
