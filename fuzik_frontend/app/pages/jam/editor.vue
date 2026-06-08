@@ -103,9 +103,33 @@ const generatePreview = () => {
   isPreviewing.value = !isPreviewing.value
 }
 
-const sendToQueue = () => {
-  alert('วิดีโอถูกส่งเข้าคิวประมวลผลแล้ว! (กำลังกลับไปหน้า Dashboard)')
-  setTimeout(() => { router.push('/') }, 1000)
+const sendToQueue = async () => {
+  const payload = {
+    layout: layoutType.value,
+    tracks: selectedVideos.value.map((vid, index) => ({
+      video_id: vid.id,
+      youtube_id: vid.youtube_id,
+      delay_seconds: trackDelays.value[index]
+    }))
+  }
+
+  try {
+    // 2. ยิงข้อมูลไปหา API หลังบ้านบน PythonAnywhere
+    const response = await $fetch('https://downloadlovedy.pythonanywhere.com/api/jam/session/', {
+      method: 'POST',
+      body: payload
+    })
+
+    alert('✅ ส่งข้อมูล Jam Session เข้าคิวสำเร็จ!')
+    console.log("Success:", response)
+    
+    // 3. พากลับหน้าแรก
+    setTimeout(() => { router.push('/') }, 1000)
+
+  } catch (error) {
+    console.error("Error saving Jam session:", error)
+    alert('❌ เกิดข้อผิดพลาดในการส่งเข้าคิว')
+  }
 }
 </script>
 
