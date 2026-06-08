@@ -16,11 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from videos.views import VideoUploadView, VideoListView, push_to_youtube
+from videos.views import VideoUploadView, VideoListView, push_to_youtube, JamSessionCreateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/upload/', VideoUploadView.as_view(), name='video-upload'),
     path('api/videos/', VideoListView.as_view(), name='video-list'),
     path('api/videos/<int:pk>/push-youtube/', push_to_youtube, name='push-youtube'),
+    path('api/jam/session/', JamSessionCreateView.as_view(), name='jam-session-create'),
 ]
