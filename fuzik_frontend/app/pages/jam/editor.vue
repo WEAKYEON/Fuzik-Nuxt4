@@ -149,7 +149,7 @@ const sendToQueue = async () => {
       method: 'POST',
       body: payload
     })
-    alert(`ส่งข้อมูล Jam Session สำเร็จ!\nแชร์ลิงก์ให้เพื่อน: fuzik.com/jam/editor?session_id=${response.id}`)
+    alert(`ส่งข้อมูล Jam Session สำเร็จ!\nแชร์ลิงก์ให้เพื่อน: fuzik.com/jam/editor?session_id=${response.data.id}`)
     setTimeout(() => { router.push('/') }, 1500)
   } catch (error) {
     console.error("Error saving Jam session:", error)

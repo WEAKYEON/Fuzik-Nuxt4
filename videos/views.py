@@ -88,10 +88,7 @@ class JamSessionCreateView(APIView):
         serializer = JamSessionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({
-                "message": "บันทึกคิว Jam Session สำเร็จ!",
-                "data": serializer.data
-            }, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class JamSessionDetailView(generics.RetrieveAPIView):
