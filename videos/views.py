@@ -23,13 +23,18 @@ def background_youtube_upload(video_id):
         # ส่งไฟล์ขึ้น YouTube
         youtube_id = upload_video_to_youtube(file_path, video_title, video_desc)
         
-        # อัปเดต ID กลับลง Database
+        # อัปเดต ID และเปลี่ยนสถานะเป็น "completed"
         video.youtube_id = youtube_id
+        video.youtube_status = 'completed'
         video.save()
         
         print(f"[Background Task] อัปโหลดสำเร็จ! YouTube ID: {youtube_id}")
     except Exception as e:
         print(f"[Background Task] อัปโหลดพลาดสำหรับ ID {video_id}: {e}")
+        # ถ้าพัง ให้เปลี่ยนสถานะเป็น "failed" หน้าเว็บจะได้รู้
+        video = Video.objects.get(pk=video_id)
+        video.youtube_status = 'failed'
+        video.save()
 
 
 class VideoUploadView(APIView):
@@ -39,7 +44,8 @@ class VideoUploadView(APIView):
         file_serializer = VideoSerializer(data=request.data)
         
         if file_serializer.is_valid():
-            video_instance = file_serializer.save()
+            # บันทึกพร้อมตั้งค่าสถานะเริ่มต้นเป็น 'pending' ทันที
+            video_instance = file_serializer.save(youtube_status='pending')
             
             upload_thread = threading.Thread(
                 target=background_youtube_upload,
@@ -64,8 +70,12 @@ def push_to_youtube(request, pk):
     try:
         video = Video.objects.get(pk=pk)
         
-        if video.youtube_id:
-            return Response({'status': 'error', 'message': 'วิดีโอนี้อยู่บน YouTube แล้ว'}, status=status.HTTP_400_BAD_REQUEST)
+        # เช็คว่ามี ID หรือสถานะเป็น pending/completed ไปแล้วหรือยัง
+        if video.youtube_id or video.youtube_status in ['pending', 'completed']:
+            return Response({'status': 'error', 'message': 'วิดีโอนี้อยู่บน YouTube หรือกำลังรอคิวอยู่แล้ว'}, status=status.HTTP_400_BAD_REQUEST)
+
+        video.youtube_status = 'pending'
+        video.save()
 
         upload_thread = threading.Thread(
             target=background_youtube_upload,

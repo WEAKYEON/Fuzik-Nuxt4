@@ -36,11 +36,31 @@
           <h4 class="title">{{ video.title }}</h4>
           <p class="author">{{ video.author }}</p>
 
-          <p class="stats" v-if="video.youtube_id">{{ video.views }} views • {{ video.time }}</p>
+          <p class="stats" v-if="video.youtube_status === 'completed' || video.youtube_id">
+            {{ video.views }} views • อัปโหลดสำเร็จ
+          </p>
+          
+          <button 
+            v-else-if="video.youtube_status === 'pending'" 
+            class="push-btn"
+            style="background: #555; color: white; cursor: not-allowed;" 
+            disabled
+          >
+            กำลังอัปโหลด...
+          </button>
+
+          <button 
+            v-else-if="video.youtube_status === 'failed'" 
+            @click.stop="uploadToYT(video)" 
+            class="push-btn"
+            style="background: #ff4d4d; color: white;"
+          >
+            อัปโหลดพลาด ลองใหม่
+          </button>
           
           <button 
             v-else 
-            @click.stop="uploadToYT(video.id)" 
+            @click.stop="uploadToYT(video)" 
             class="push-btn"
           >
             Push to YouTube
@@ -59,20 +79,21 @@ const currentTab = ref('solo')
 const searchQuery = ref('') 
 const router = useRouter() 
 
-// ดึงข้อมูลจาก Django
-const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
+// ดึง refresh มาด้วย เพื่อเอาไว้อัปเดตข้อมูลเงียบๆ เบื้องหลัง
+const { data: apiVideos, refresh } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
 
 const videos = computed(() => {
   if (!apiVideos.value) return []
   return apiVideos.value
-    .map((v, index) => ({
+    .map((v) => ({
       id: v.id,
       title: v.title,
       youtube_id: v.youtube_id,
       type: v.video_type, 
       author: 'Fuzik User', 
       views: (v.id * 13) % 100,
-      time: new Date(v.uploaded_at).toLocaleDateString('th-TH')
+      time: new Date(v.uploaded_at).toLocaleDateString('th-TH'),
+      youtube_status: v.youtube_status // 📌 ดึงสถานะมาใช้งาน
     }))
 })
 
@@ -89,23 +110,30 @@ const playVideo = (video) => {
   router.push(`/video/${video.id}`) 
 }
 
-// ฟังก์ชันสั่งยิง API ขึ้น YouTube ที่เราเพิ่งทำกันในฝั่ง Django
-const uploadToYT = async (id) => {
-  if (!confirm('ต้องการอัปโหลดวิดีโอนี้ขึ้น YouTube ใช่หรือไม่?')) return;
+// ปรับฟังก์ชันใหม่ รับ object video ทั้งก้อนเข้ามา
+const uploadToYT = async (video) => {
+  if (!confirm('ต้องการดันวิดีโอนี้เข้าคิวอัปโหลด YouTube ใช่หรือไม่?')) return;
+  
+  // ทำ Optimistic UI: หลอกตาผู้ใช้ว่าสถานะเปลี่ยนแล้วทันที
+  const targetVideo = apiVideos.value.find(v => v.id === video.id);
+  if (targetVideo) {
+    targetVideo.youtube_status = 'pending';
+  }
   
   try {
-    alert('ระบบกำลังทำงาน... โปรดรอสักครู่ ห้ามปิดหน้าต่างนี้นะครับ (อาจใช้เวลาหลายวินาที)');
-    
-    // ยิงไปหา API ตัวใหม่ที่เราเพิ่งสร้าง
-    const response = await $fetch(`https://downloadlovedy.pythonanywhere.com/api/videos/${id}/push-youtube/`, {
+    // ยิง API เบื้องหลัง (ไม่ต้องมี alert บล็อกหน้าจอแล้ว)
+    await $fetch(`https://downloadlovedy.pythonanywhere.com/api/videos/${video.id}/push-youtube/`, {
       method: 'POST'
     });
     
-    alert(`อัปโหลดสำเร็จ! 🎉 (YouTube ID: ${response.youtube_id})`);
-    window.location.reload(); 
+    refresh();
     
   } catch (error) {
-    alert('เกิดข้อผิดพลาดในการอัปโหลด เช็คเทอร์มินัลหลังบ้านดูนะครับ');
+    console.error('Upload error:', error);
+    // ถ้าพัง ให้เปลี่ยนสถานะกลับเป็น failed
+    if (targetVideo) {
+      targetVideo.youtube_status = 'failed';
+    }
   }
 }
 </script>
