@@ -83,7 +83,7 @@ const route = useRoute()
 const router = useRouter()
 
 // 1. ดึงรายการวิดีโอทั้งหมดมาก่อน
-const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
+const { data: apiVideos } = await useFetch('/api/videos/')
 
 // 2. เช็คว่าเปิดมาแบบมี Session ID (โหลดงานเก่า) หรือแบบสร้างใหม่ (vids)
 const sessionId = computed(() => route.query.session_id)
@@ -99,7 +99,8 @@ const loadExistingSession = async () => {
   if (!sessionId.value) return
 
   try {
-    const sessionData = await $fetch(`https://downloadlovedy.pythonanywhere.com/api/jam/session/${sessionId.value}/`)
+    const config = useRuntimeConfig();
+    const sessionData = await $fetch(`${config.public.apiBase}/api/jam/session/${sessionId.value}/`)
     
     if (sessionData && sessionData.tracks) {
       // ดึง Layout เดิมมา
@@ -154,7 +155,7 @@ const sendToQueue = async () => {
   };
 
   try {
-    const response = await $fetch('https://downloadlovedy.pythonanywhere.com/api/jam/session/', {
+    const response = await $fetch(`${config.public.apiBase}/api/jam/session/`, {
       method: 'POST',
       body: payload
     });

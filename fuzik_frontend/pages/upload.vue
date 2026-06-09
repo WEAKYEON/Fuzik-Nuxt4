@@ -49,6 +49,8 @@ const uploadVideo = async () => {
   isUploading.value = true
   message.value = 'กำลังส่งไฟล์ไปที่เซิร์ฟเวอร์หลังบ้าน...'
 
+  const config = useRuntimeConfig()
+
   const formData = new FormData()
   formData.append('title', title.value)
   formData.append('description', description.value) // ส่ง Description ไปด้วย
@@ -57,7 +59,7 @@ const uploadVideo = async () => {
   formData.append('video_type', 'solo')
 
   try {
-    await $fetch('https://downloadlovedy.pythonanywhere.com/api/upload/', {
+    await $fetch(`${config.public.apiBase}/api/upload/`, {
       method: 'POST',
       body: formData
     })

@@ -137,6 +137,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://fuzik-nuxt4.vercel.app/",  # <--- เปลี่ยนตรงนี้เป็นลิงก์เว็บ Vercel ของคุณ 
+    "https://fuzik-nuxt4.vercel.app/",
     "https://downloadlovedy.pythonanywhere.com",
 ]

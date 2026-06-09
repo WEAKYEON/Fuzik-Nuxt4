@@ -78,7 +78,8 @@ const route = useRoute()
 const router = useRouter()
 
 // ดึงข้อมูลวิดีโอจาก API
-const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
+const config = useRuntimeConfig();
+const { data: apiVideos } = await useFetch(`${config.public.apiBase}/api/videos/`)
 const video = computed(() => {
   if (!apiVideos.value) return null
   const v = apiVideos.value.find(v => v.id.toString() === route.params.id)

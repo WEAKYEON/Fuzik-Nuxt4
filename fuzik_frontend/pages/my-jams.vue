@@ -38,9 +38,10 @@
 
 <script setup>
 const router = useRouter()
+const config = useRuntimeConfig()
 
 // ดึงข้อมูล
-const { data: sessions, pending } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/jam/session/')
+const { data: sessions, pending } = await useFetch(`${config.public.apiBase}/api/jam/session/`)
 
 // เปิดหน้า Editor
 const openSession = (id) => {

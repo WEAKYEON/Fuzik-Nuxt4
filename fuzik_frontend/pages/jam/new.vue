@@ -91,7 +91,8 @@ const layoutNames = {
 const layoutName = computed(() => layoutNames[layout.value] || layout.value)
 
 // สมมติดึงข้อมูลวิดีโอจาก Database
-const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
+const config = useRuntimeConfig();
+const { data: apiVideos } = await useFetch(`${config.public.apiBase}/api/videos/`);
 
 // State สำหรับค้นหาและ Drag & Drop
 const searchQuery = ref('')

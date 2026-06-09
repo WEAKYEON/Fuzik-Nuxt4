@@ -80,7 +80,8 @@ const searchQuery = ref('')
 const router = useRouter() 
 
 // ดึง refresh มาด้วย เพื่อเอาไว้อัปเดตข้อมูลเงียบๆ เบื้องหลัง
-const { data: apiVideos, refresh } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
+const config = useRuntimeConfig();
+const { data: apiVideos, refresh } = await useFetch(`${config.public.apiBase}/api/videos/`)
 
 const videos = computed(() => {
   if (!apiVideos.value) return []
@@ -122,7 +123,8 @@ const uploadToYT = async (video) => {
   
   try {
     // ยิง API เบื้องหลัง (ไม่ต้องมี alert บล็อกหน้าจอแล้ว)
-    await $fetch(`https://downloadlovedy.pythonanywhere.com/api/videos/${video.id}/push-youtube/`, {
+    const config = useRuntimeConfig();
+    await $fetch(`${config.public.apiBase}/api/videos/${video.id}/push-youtube/`, {
       method: 'POST'
     });
     
