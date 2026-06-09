@@ -71,7 +71,7 @@ const videos = computed(() => {
       youtube_id: v.youtube_id,
       type: v.video_type, 
       author: 'Fuzik User', 
-      views: Math.floor(Math.random() * 100),
+      views: (v.id * 13) % 100,
       time: new Date(v.uploaded_at).toLocaleDateString('th-TH')
     }))
 })

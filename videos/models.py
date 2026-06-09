@@ -20,7 +20,6 @@ class Video(models.Model):
         return self.title
     
 class JamSession(models.Model):
-    session_id = models.CharField(max_length=100, unique=True, blank=True, null=True) 
     layout = models.CharField(max_length=50) 
     tracks = models.JSONField(default=list) 
     status = models.CharField(max_length=20, default='pending') 

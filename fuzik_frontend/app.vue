@@ -4,6 +4,7 @@
       <h2 style="color: yellow; margin-bottom: 30px;">FUZIK</h2>
       <ul>
         <li><NuxtLink to="/" exact-active-class="active-link">Dashboard</NuxtLink></li>
+        <li><NuxtLink to="/my-jams" active-class="active-link">My Jams</NuxtLink></li>
         <li><NuxtLink to="/upload" active-class="active-link">Upload</NuxtLink></li>
         <li><NuxtLink to="/collaboration" active-class="active-link">Collaboration</NuxtLink></li>
       </ul>

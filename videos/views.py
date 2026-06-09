@@ -84,6 +84,11 @@ def push_to_youtube(request, pk):
         return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class JamSessionCreateView(APIView):
+    def get(self, request, *args, **kwargs):
+        sessions = JamSession.objects.all().order_by('-id')
+        serializer = JamSessionSerializer(sessions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     def post(self, request, *args, **kwargs):
         serializer = JamSessionSerializer(data=request.data)
         if serializer.is_valid():

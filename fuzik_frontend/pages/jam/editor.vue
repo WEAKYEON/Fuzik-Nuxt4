@@ -135,25 +135,40 @@ const generatePreview = () => {
 }
 
 const sendToQueue = async () => {
+  const validVideos = selectedVideos.value.filter(vid => vid && vid.id);
+
+  if (validVideos.length === 0) {
+    alert('ไม่มีวิดีโอที่เลือกไว้!');
+    return;
+  }
+
   const payload = {
-    layout: layoutType.value,
-    tracks: selectedVideos.value.map((vid, index) => ({
+    layout: layoutType.value || 'grid-2',
+    // 2. map จาก validVideos แทน
+    tracks: validVideos.map((vid, index) => ({
       video_id: vid.id,
       youtube_id: vid.youtube_id,
-      delay_seconds: trackDelays.value[index]
+      // ใช้ index ของ vid เพื่อดึง delay ที่ตรงกัน
+      delay_seconds: trackDelays.value[index] || 0
     }))
-  }
+  };
 
   try {
     const response = await $fetch('https://downloadlovedy.pythonanywhere.com/api/jam/session/', {
       method: 'POST',
       body: payload
-    })
-    alert(`ส่งข้อมูล Jam Session สำเร็จ!\nแชร์ลิงก์ให้เพื่อน: fuzik.com/jam/editor?session_id=${response.data.id}`)
-    setTimeout(() => { router.push('/') }, 1500)
+    });
+
+    // 3. ปรับตรงนี้: ถ้า response เป็น object ข้อมูลเลย ให้ใช้ response.id
+    // ลอง console.log(response) ดูใน F12 ว่าค่า ID อยู่ตรงไหนครับ
+    const sessionId = response.id || (response.data && response.data.id);
+    
+    alert(`ส่งข้อมูล Jam Session สำเร็จ!\nแชร์ลิงก์ให้เพื่อน: fuzik.com/jam/editor?session_id=${sessionId}`);
+    setTimeout(() => { router.push('/') }, 1500);
+    
   } catch (error) {
-    console.error("Error saving Jam session:", error)
-    alert('เกิดข้อผิดพลาดในการส่งเข้าคิว')
+    console.error("Error saving Jam session:", error);
+    alert('เกิดข้อผิดพลาดในการส่งเข้าคิว: ' + (error.message || 'ไม่ทราบสาเหตุ'));
   }
 }
 </script>
