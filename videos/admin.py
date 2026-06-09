@@ -3,4 +3,8 @@ from .models import Video, JamSession
 
 admin.site.register(Video)
 
-admin.site.register(JamSession)
+@admin.register(JamSession)
+class JamSessionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'layout')
+    
+    readonly_fields = ('id',)
