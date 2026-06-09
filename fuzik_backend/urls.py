@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from videos.views import VideoUploadView, VideoListView, push_to_youtube, JamSessionCreateView
+from videos.views import JamSessionDetailView, VideoUploadView, VideoListView, push_to_youtube, JamSessionCreateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/videos/', VideoListView.as_view(), name='video-list'),
     path('api/videos/<int:pk>/push-youtube/', push_to_youtube, name='push-youtube'),
     path('api/jam/session/', JamSessionCreateView.as_view(), name='jam-session-create'),
+    path('api/jam/session/<int:pk>/', JamSessionDetailView.as_view(), name='jam-session-detail'),
 ]

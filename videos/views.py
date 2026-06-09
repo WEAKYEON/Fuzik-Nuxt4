@@ -93,3 +93,7 @@ class JamSessionCreateView(APIView):
                 "data": serializer.data
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class JamSessionDetailView(generics.RetrieveAPIView):
+    queryset = JamSession.objects.all()
+    serializer_class = JamSessionSerializer

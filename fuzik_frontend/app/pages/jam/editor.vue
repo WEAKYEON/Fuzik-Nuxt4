@@ -78,28 +78,59 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 const route = useRoute()
 const router = useRouter()
 
+// 1. ดึงรายการวิดีโอทั้งหมดมาก่อน
 const { data: apiVideos } = await useFetch('https://downloadlovedy.pythonanywhere.com/api/videos/')
 
-const vidsParam = computed(() => route.query.vids ? route.query.vids.split(',') : [])
-const layoutType = computed(() => route.query.layout || 'grid-4')
+// 2. เช็คว่าเปิดมาแบบมี Session ID (โหลดงานเก่า) หรือแบบสร้างใหม่ (vids)
+const sessionId = computed(() => route.query.session_id)
+const vidsParam = ref(route.query.vids ? route.query.vids.split(',') : [])
+const layoutType = ref(route.query.layout || 'grid-4')
 
-const selectedVideos = computed(() => {
-  if (!apiVideos.value || vidsParam.value.length === 0) return []
-  return apiVideos.value.filter(v => vidsParam.value.includes(v.id.toString()))
-})
-
-const trackColors = ['red', 'blue', 'green', 'yellow']
-
-// 📌 สร้าง Array เก็บค่า Delay ของแต่ละ Track (เริ่มต้นที่ 0 วินาที)
 const trackDelays = ref([0, 0, 0, 0])
 const isPreviewing = ref(false)
+const trackColors = ['red', 'blue', 'green', 'yellow']
+
+// 3. ฟังก์ชันโหลดข้อมูล Session เก่า (ถ้ามี)
+const loadExistingSession = async () => {
+  if (!sessionId.value) return
+
+  try {
+    const sessionData = await $fetch(`https://downloadlovedy.pythonanywhere.com/api/jam/session/${sessionId.value}/`)
+    
+    if (sessionData && sessionData.tracks) {
+      // ดึง Layout เดิมมา
+      layoutType.value = sessionData.layout
+      
+      // ดึง ID วิดีโอเดิมมาเรียงใหม่
+      vidsParam.value = sessionData.tracks.map(t => t.video_id.toString())
+      
+      // ดึงค่า Delay เดิมมาเซ็ตให้ Slider
+      sessionData.tracks.forEach((track, index) => {
+        trackDelays.value[index] = track.delay_seconds
+      })
+      console.log("โหลดข้อมูล Jam เก่าสำเร็จ!")
+    }
+  } catch (error) {
+    console.error("ไม่พบข้อมูล Session นี้:", error)
+  }
+}
+
+// 4. คำนวณวิดีโอที่จะเอามาแสดงบนจอ
+const selectedVideos = computed(() => {
+  if (!apiVideos.value || vidsParam.value.length === 0) return []
+  return vidsParam.value.map(id => apiVideos.value.find(v => v.id.toString() === id)).filter(v => v)
+})
+
+// สั่งให้รันฟังก์ชันโหลดข้อมูลตอนเปิดหน้าเว็บ
+onMounted(() => {
+  loadExistingSession()
+})
 
 const generatePreview = () => {
-  // สลับสถานะเพื่อบังคับให้ iframe โหลดใหม่
   isPreviewing.value = !isPreviewing.value
 }
 
@@ -114,18 +145,12 @@ const sendToQueue = async () => {
   }
 
   try {
-    // 2. ยิงข้อมูลไปหา API หลังบ้านบน PythonAnywhere
     const response = await $fetch('https://downloadlovedy.pythonanywhere.com/api/jam/session/', {
       method: 'POST',
       body: payload
     })
-
-    alert('ส่งข้อมูล Jam Session เข้าคิวสำเร็จ!')
-    console.log("Success:", response)
-    
-    // 3. พากลับหน้าแรก
-    setTimeout(() => { router.push('/') }, 1000)
-
+    alert(`ส่งข้อมูล Jam Session สำเร็จ!\nแชร์ลิงก์ให้เพื่อน: fuzik.com/jam/editor?session_id=${response.id}`)
+    setTimeout(() => { router.push('/') }, 1500)
   } catch (error) {
     console.error("Error saving Jam session:", error)
     alert('เกิดข้อผิดพลาดในการส่งเข้าคิว')
@@ -138,7 +163,7 @@ const sendToQueue = async () => {
 .editor-container { 
   --red-color: #d32f2f;
   --blue-color: #1976d2;
-  --green-color: #388e3c;
+  --green-color: #388e3c; 
   --yellow-color: #fbc02d;
   display: flex; gap: 20px; background-color: #000; padding: 20px; min-height: 80vh; color: #fff; font-family: sans-serif; 
 }
