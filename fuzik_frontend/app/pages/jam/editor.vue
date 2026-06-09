@@ -120,7 +120,7 @@ const sendToQueue = async () => {
       body: payload
     })
 
-    alert('✅ ส่งข้อมูล Jam Session เข้าคิวสำเร็จ!')
+    alert('ส่งข้อมูล Jam Session เข้าคิวสำเร็จ!')
     console.log("Success:", response)
     
     // 3. พากลับหน้าแรก
@@ -128,7 +128,7 @@ const sendToQueue = async () => {
 
   } catch (error) {
     console.error("Error saving Jam session:", error)
-    alert('❌ เกิดข้อผิดพลาดในการส่งเข้าคิว')
+    alert('เกิดข้อผิดพลาดในการส่งเข้าคิว')
   }
 }
 </script>

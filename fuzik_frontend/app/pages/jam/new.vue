@@ -1,7 +1,7 @@
 <template>
   <div class="fuzik-container">
     <header class="header">
-      <h2 style="color: #fdd835; margin-top: 0;">🎧 Custom Collaboration Studio</h2>
+      <h2 style="color: #fdd835; margin-top: 0;">Custom Collaboration Studio</h2>
       <p>คุณกำลังสร้างโปรเจกต์ Jam โดยใช้ Layout: <strong style="color: #fdd835;">{{ layoutName }}</strong></p>
     </header>
 
