@@ -12,18 +12,20 @@ from .youtube_api import upload_video_to_youtube
 
 def background_youtube_upload(video_id):
     try:
+        # ดึงวิดีโอและเปลี่ยนสถานะเป็น 'uploading' ทันทีที่เริ่มทำงาน
+        video = Video.objects.get(pk=video_id)
+        video.youtube_status = 'uploading'
+        video.save()
+        
         print(f"[Background Task] เริ่มอัปโหลดวิดีโอ ID: {video_id} ขึ้น YouTube...")
         
-        # ดึงข้อมูลจาก Database
-        video = Video.objects.get(pk=video_id)
         file_path = video.video_file.path
         video_title = video.title
         video_desc = video.description or "อัปโหลดผ่านระบบ Fuzik Connect"
 
-        # ส่งไฟล์ขึ้น YouTube
         youtube_id = upload_video_to_youtube(file_path, video_title, video_desc)
         
-        # อัปเดต ID และเปลี่ยนสถานะเป็น "completed"
+        # เมื่อสำเร็จเปลี่ยนเป็น completed
         video.youtube_id = youtube_id
         video.youtube_status = 'completed'
         video.save()
@@ -31,7 +33,6 @@ def background_youtube_upload(video_id):
         print(f"[Background Task] อัปโหลดสำเร็จ! YouTube ID: {youtube_id}")
     except Exception as e:
         print(f"[Background Task] อัปโหลดพลาดสำหรับ ID {video_id}: {e}")
-        # ถ้าพัง ให้เปลี่ยนสถานะเป็น "failed" หน้าเว็บจะได้รู้
         video = Video.objects.get(pk=video_id)
         video.youtube_status = 'failed'
         video.save()
@@ -45,7 +46,7 @@ class VideoUploadView(APIView):
         
         if file_serializer.is_valid():
             # บันทึกพร้อมตั้งค่าสถานะเริ่มต้นเป็น 'pending' ทันที
-            video_instance = file_serializer.save(youtube_status='pending')
+            video_instance = file_serializer.save(youtube_status='uploading')
             
             upload_thread = threading.Thread(
                 target=background_youtube_upload,

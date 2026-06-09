@@ -11,6 +11,7 @@ class Video(models.Model):
     YOUTUBE_STATUS_CHOICES = (
         ('none', 'ยังไม่อัปโหลด'),
         ('pending', 'กำลังรอคิวอัปโหลด'),
+        ('uploading', 'กำลังอัปโหลด...'),
         ('completed', 'อัปโหลดเสร็จสิ้น'),
         ('failed', 'อัปโหลดล้มเหลว'),
     )

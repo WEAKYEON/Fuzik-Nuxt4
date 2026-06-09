@@ -36,17 +36,17 @@
           <h4 class="title">{{ video.title }}</h4>
           <p class="author">{{ video.author }}</p>
 
-          <p class="stats" v-if="video.youtube_status === 'completed' || video.youtube_id">
+          <p class="stats" v-if="video.youtube_status === 'completed'">
             {{ video.views }} views • อัปโหลดสำเร็จ
           </p>
           
           <button 
-            v-else-if="video.youtube_status === 'pending'" 
+            v-else-if="video.youtube_status === 'pending' || video.youtube_status === 'uploading'" 
             class="push-btn"
             style="background: #555; color: white; cursor: not-allowed;" 
             disabled
           >
-            กำลังอัปโหลด...
+            กำลังดำเนินการอัปโหลด...
           </button>
 
           <button 
@@ -74,6 +74,22 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
+
+// สร้างตัวแปรเก็บ Interval
+let intervalId = null
+
+onMounted(() => {
+  // สั่งให้ refresh ข้อมูลทุก 3 วินาที
+  intervalId = setInterval(() => {
+    refresh()
+  }, 3000)
+})
+
+onUnmounted(() => {
+  // อย่าลืมเคลียร์ Interval เมื่อเปลี่ยนหน้า เพื่อไม่ให้เปลืองทรัพยากร
+  clearInterval(intervalId)
+})
 
 const currentTab = ref('solo')
 const searchQuery = ref('') 
@@ -81,7 +97,10 @@ const router = useRouter()
 
 // ดึง refresh มาด้วย เพื่อเอาไว้อัปเดตข้อมูลเงียบๆ เบื้องหลัง
 const config = useRuntimeConfig();
-const { data: apiVideos, refresh } = await useFetch(`${config.public.apiBase}/api/videos/`)
+const { data: apiVideos, refresh } = await useFetch(`${config.public.apiBase}/api/videos/`, {
+  key: 'videos-list', // ใส่ key กำกับ
+  cache: false        // ปิดการใช้ Cache
+})
 
 const videos = computed(() => {
   if (!apiVideos.value) return []
@@ -94,7 +113,7 @@ const videos = computed(() => {
       author: 'Fuzik User', 
       views: (v.id * 13) % 100,
       time: new Date(v.uploaded_at).toLocaleDateString('th-TH'),
-      youtube_status: v.youtube_status // 📌 ดึงสถานะมาใช้งาน
+      youtube_status: v.youtube_status // ดึงสถานะมาใช้งาน
     }))
 })
 
@@ -122,20 +141,18 @@ const uploadToYT = async (video) => {
   }
   
   try {
-    // ยิง API เบื้องหลัง (ไม่ต้องมี alert บล็อกหน้าจอแล้ว)
     const config = useRuntimeConfig();
     await $fetch(`${config.public.apiBase}/api/videos/${video.id}/push-youtube/`, {
       method: 'POST'
     });
     
-    refresh();
+    // สำคัญ: รอสัก 1 วินาทีให้หลังบ้านประมวลผลก่อน refresh
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await refresh(); 
     
   } catch (error) {
     console.error('Upload error:', error);
-    // ถ้าพัง ให้เปลี่ยนสถานะกลับเป็น failed
-    if (targetVideo) {
-      targetVideo.youtube_status = 'failed';
-    }
+    if (targetVideo) targetVideo.youtube_status = 'failed';
   }
 }
 </script>

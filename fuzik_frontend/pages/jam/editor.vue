@@ -79,56 +79,54 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+
 const route = useRoute()
 const router = useRouter()
+const config = useRuntimeConfig()
 
-// 1. ดึงรายการวิดีโอทั้งหมดมาก่อน
-const { data: apiVideos } = await useFetch('/api/videos/')
-
-// 2. เช็คว่าเปิดมาแบบมี Session ID (โหลดงานเก่า) หรือแบบสร้างใหม่ (vids)
-const sessionId = computed(() => route.query.session_id)
+// 1. ประกาศตัวแปรพื้นฐาน
+const apiVideos = ref([]) 
 const vidsParam = ref(route.query.vids ? route.query.vids.split(',') : [])
 const layoutType = ref(route.query.layout || 'grid-4')
-
 const trackDelays = ref([0, 0, 0, 0])
 const isPreviewing = ref(false)
 const trackColors = ['red', 'blue', 'green', 'yellow']
 
-// 3. ฟังก์ชันโหลดข้อมูล Session เก่า (ถ้ามี)
+// 2. ประกาศฟังก์ชันโหลด Session ไว้ด้านบนก่อนเรียกใช้
 const loadExistingSession = async () => {
-  if (!sessionId.value) return
-
+  const sessionId = route.query.session_id
+  if (!sessionId) return
   try {
-    const config = useRuntimeConfig();
-    const sessionData = await $fetch(`${config.public.apiBase}/api/jam/session/${sessionId.value}/`)
-    
+    const sessionData = await $fetch(`${config.public.apiBase}/api/jam/session/${sessionId}/`)
     if (sessionData && sessionData.tracks) {
-      // ดึง Layout เดิมมา
       layoutType.value = sessionData.layout
-      
-      // ดึง ID วิดีโอเดิมมาเรียงใหม่
       vidsParam.value = sessionData.tracks.map(t => t.video_id.toString())
-      
-      // ดึงค่า Delay เดิมมาเซ็ตให้ Slider
       sessionData.tracks.forEach((track, index) => {
         trackDelays.value[index] = track.delay_seconds
       })
-      console.log("โหลดข้อมูล Jam เก่าสำเร็จ!")
     }
   } catch (error) {
     console.error("ไม่พบข้อมูล Session นี้:", error)
   }
 }
 
-// 4. คำนวณวิดีโอที่จะเอามาแสดงบนจอ
+// 3. ประกาศ selectedVideos ตรงนี้ (ต้องมีก่อนที่ HTML จะเรียกใช้)
 const selectedVideos = computed(() => {
-  if (!apiVideos.value || vidsParam.value.length === 0) return []
-  return vidsParam.value.map(id => apiVideos.value.find(v => v.id.toString() === id)).filter(v => v)
+  if (!apiVideos.value || apiVideos.value.length === 0) return [];
+  return vidsParam.value
+    .map(id => apiVideos.value.find(v => String(v.id) === String(id)))
+    .filter(v => v !== undefined);
 })
 
-// สั่งให้รันฟังก์ชันโหลดข้อมูลตอนเปิดหน้าเว็บ
-onMounted(() => {
-  loadExistingSession()
+// 4. สั่งรันใน onMounted
+onMounted(async () => {
+  try {
+    apiVideos.value = await $fetch(`${config.public.apiBase}/api/videos/`)
+    console.log("โหลดวิดีโอสำเร็จ:", apiVideos.value)
+    await loadExistingSession()
+  } catch (error) {
+    console.error("ดึงข้อมูลพลาด:", error)
+  }
 })
 
 const generatePreview = () => {
@@ -136,10 +134,12 @@ const generatePreview = () => {
 }
 
 const sendToQueue = async () => {
+  console.log("selectedVideos ก่อนตรวจสอบ:", selectedVideos.value);
+  
   const validVideos = selectedVideos.value.filter(vid => vid && vid.id);
 
   if (validVideos.length === 0) {
-    alert('ไม่มีวิดีโอที่เลือกไว้!');
+    alert(`ไม่มีวิดีโอ! (apiVideos: ${apiVideos.value ? 'มี' : 'ไม่มี'}, vidsParam: ${vidsParam.value.length})`);
     return;
   }
 
