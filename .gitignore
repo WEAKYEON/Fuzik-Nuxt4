@@ -13,3 +13,4 @@ fuzik_backend/media/
 fuzik_backend/temp_videos/
 venv/
 .venv/
+token.pickle

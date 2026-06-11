@@ -9,7 +9,7 @@ def upload_video_to_youtube(file_path, title, description="อัปโหลด
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
     scopes = ["https://www.googleapis.com/auth/youtube.upload"]
     
-    # 📌 1. บังคับพิกัดไฟล์ให้อยู่ที่เดียวกับ manage.py เสมอ จะได้หาเจอตลอด
+    # บังคับพิกัดไฟล์ให้อยู่ที่เดียวกับ manage.py เสมอ จะได้หาเจอตลอด
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     client_secrets_file = os.path.join(BASE_DIR, 'client_secrets.json')
     token_file = os.path.join(BASE_DIR, 'token.json')
@@ -24,7 +24,7 @@ def upload_video_to_youtube(file_path, title, description="อัปโหลด
         else:
             flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
                 client_secrets_file, scopes)
-            # 📌 2. เพิ่ม prompt='consent' เพื่อบังคับให้ Google แจก Refresh Token แน่นอน
+            # เพิ่ม prompt='consent' เพื่อบังคับให้ Google แจก Refresh Token แน่นอน
             creds = flow.run_local_server(port=0, prompt='consent')
             
         with open(token_file, 'w') as token:

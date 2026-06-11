@@ -63,7 +63,7 @@ const uploadVideo = async () => {
       method: 'POST',
       body: formData
     })
-    message.value = 'อัปโหลดสำเร็จ! วิดีโอของคุณถูกส่งขึ้น YouTube อัตโนมัติแล้ว กลับไปดูที่ Dashboard ได้เลย'
+    message.value = 'อัปโหลดเข้าเซิร์ฟเวอร์สำเร็จ! โปรดรอแอดมินตรวจสอบความเรียบร้อยก่อนนำขึ้น YouTube ครับ'
     
     // เคลียร์ฟอร์มหลังอัปโหลดเสร็จ
     title.value = ''

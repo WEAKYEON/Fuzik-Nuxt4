@@ -1,18 +1,23 @@
 import threading
-from django.shortcuts import render
 import os
-from rest_framework import status,  generics
+import random
+import string
+
+from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
+
 from .models import Video, JamSession
 from .serializers import VideoSerializer, JamSessionSerializer
 from .youtube_api import upload_video_to_youtube
 
+# -------------------------------------------------------------------
+# 1. ระบบเบื้องหลังสำหรับอัปโหลดขึ้น YouTube (เก็บไว้เผื่อแอดมินกดสั่งงาน)
+# -------------------------------------------------------------------
 def background_youtube_upload(video_id):
     try:
-        # ดึงวิดีโอและเปลี่ยนสถานะเป็น 'uploading' ทันทีที่เริ่มทำงาน
         video = Video.objects.get(pk=video_id)
         video.youtube_status = 'uploading'
         video.save()
@@ -25,7 +30,6 @@ def background_youtube_upload(video_id):
 
         youtube_id = upload_video_to_youtube(file_path, video_title, video_desc)
         
-        # เมื่อสำเร็จเปลี่ยนเป็น completed
         video.youtube_id = youtube_id
         video.youtube_status = 'completed'
         video.save()
@@ -37,29 +41,40 @@ def background_youtube_upload(video_id):
         video.youtube_status = 'failed'
         video.save()
 
+# -------------------------------------------------------------------
+# รับไฟล์จากหน้าเว็บ Nuxt (พักไว้ก่อน ไม่ลงสุ่มสี่สุ่มห้า)
+# -------------------------------------------------------------------
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def upload_video(request):
+    video_file = request.FILES.get('video_file')
+    title = request.data.get('title', 'Untitled Video')
+    description = request.data.get('description', '')    
+    video_type = request.data.get('video_type', 'solo')  
 
-class VideoUploadView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+    if not video_file:
+        return Response({"error": "ไม่พบไฟล์วิดีโอ กรุณาอัปโหลดใหม่"}, status=400)
 
-    def post(self, request, *args, **kwargs):
-        file_serializer = VideoSerializer(data=request.data)
-        
-        if file_serializer.is_valid():
-            # บันทึกพร้อมตั้งค่าสถานะเริ่มต้นเป็น 'pending' ทันที
-            video_instance = file_serializer.save(youtube_status='uploading')
-            
-            upload_thread = threading.Thread(
-                target=background_youtube_upload,
-                args=(video_instance.id,)
-            )
-            upload_thread.start() 
+    # สร้าง Fuzik URL สุ่ม
+    random_url = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
 
-            response_data = VideoSerializer(video_instance).data
-            response_data['message'] = "รับไฟล์เรียบร้อย กำลังดำเนินการอัปโหลดขึ้น YouTube เบื้องหลัง..."
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    new_video = Video.objects.create(
+        title=title,
+        description=description, 
+        video_type=video_type,   
+        fuzik_url=random_url,
+        video_file=video_file,
+        youtube_status='none'    #บังคับเป็น 'none' ให้รอแอดมินตรวจ
+    )
 
+    return Response({
+        "message": "อัปโหลดเข้าเซิร์ฟเวอร์สำเร็จ! รอการตรวจสอบ",
+        "video_url": new_video.fuzik_url
+    }, status=201)
+
+# -------------------------------------------------------------------
+# 3. API สำหรับดึงข้อมูลและจัดการอื่นๆ (คงของเก่าไว้ทั้งหมด)
+# -------------------------------------------------------------------
 class VideoListView(APIView):
     def get(self, request):
         videos = Video.objects.all().order_by('-uploaded_at')
@@ -71,7 +86,6 @@ def push_to_youtube(request, pk):
     try:
         video = Video.objects.get(pk=pk)
         
-        # เช็คว่ามี ID หรือสถานะเป็น pending/completed ไปแล้วหรือยัง
         if video.youtube_id or video.youtube_status in ['pending', 'completed']:
             return Response({'status': 'error', 'message': 'วิดีโอนี้อยู่บน YouTube หรือกำลังรอคิวอยู่แล้ว'}, status=status.HTTP_400_BAD_REQUEST)
 
